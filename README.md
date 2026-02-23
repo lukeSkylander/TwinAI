@@ -30,4 +30,4 @@ Das Netz soll ein kleines Klassifikationsproblem lösen – Erkennung von handge
 	Präsentation	10%
 
 Hier der Link auf MNIST Test- und Trainingsdaten:
-https://www.kaggle.com/datasets/mohamedgamal07/reduced-mnist<img width="1789" height="2343" alt="image" src="https://github.com/user-attachments/assets/78f3f8a0-6daf-4b12-893f-9fe131e6a07d" />
+https://www.kaggle.com/datasets/mohamedgamal07/reduced-mnist
