@@ -3,6 +3,7 @@ from nn import NeuralNetwork, cross_entropy
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from draw_gui import DrawGUI
 
 os.makedirs("plots", exist_ok=True)
 
@@ -104,3 +105,8 @@ plt.savefig("plots/digit_accuracy.png")
 plt.close()
 
 print("Plots gespeichert in /plots")
+
+print("Starting drawing GUI...")
+
+gui = DrawGUI(nn)
+gui.run()
