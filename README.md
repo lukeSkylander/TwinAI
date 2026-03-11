@@ -1,6 +1,5 @@
 # TwinAI
 
-
 Auftrag:
 
 📝 Auftrag: Einführung in Künstliche Neuronale Netze (KNN) – Programmierprojekt in Python
