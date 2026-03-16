@@ -1,112 +1,110 @@
-from data_loader import load_dataset
-from nn import NeuralNetwork, cross_entropy
-import numpy as np
-import matplotlib.pyplot as plt
-import os
+from data_loader import load_mnist, debug_show_samples
+from nn import NeuralNetwork
 from draw_gui import DrawGUI
 
-os.makedirs("plots", exist_ok=True)
+import numpy as np
+import os
 
-X_train, y_train = load_dataset("Reduced MNIST Data/Reduced Trainging data")
-X_test, y_test = load_dataset("Reduced MNIST Data/Reduced Testing data")
+MODEL_PATH = "model/mnist_model.npz"
+DATA_PATH = "./data/kaggle_mnist"
 
-print("Train:", X_train.shape, y_train.shape)
-print("Test:", X_test.shape, y_test.shape)
+os.makedirs("model", exist_ok=True)
 
-print("Train samples:", len(X_train))
-print("Test samples:", len(X_test))
-print("Vector:", X_train.shape)
-print("Image vector size:", X_train.shape[1])
 
-nn = NeuralNetwork(input_size=X_train.shape[1], hidden_size=64, output_size=10)
+print("Loading MNIST dataset...")
 
-epochs = 20
-learning_rate = 0.01
+X_train, y_train, X_test, y_test = load_mnist(DATA_PATH)
 
-loss_history = []
-accuracy_history = []
+print("Train:", X_train.shape)
+print("Test:", X_test.shape)
 
-for epoch in range(epochs):
+debug_show_samples(X_train, y_train, 10)
 
-    indices = np.random.permutation(len(X_train))
-    X_train = X_train[indices]
-    y_train = y_train[indices]
+print("Train:", X_train.shape)
+print("Test:", X_test.shape)
 
-    total_loss = 0
+nn = NeuralNetwork(input_size=784, hidden_size=128, output_size=10)
 
-    for x, y in zip(X_train, y_train):
-        pred = nn.forward(x)
-        total_loss += cross_entropy(pred, y)
-        nn.backward(x, y, learning_rate)
 
-    avg_loss = total_loss / len(X_train)
-    loss_history.append(avg_loss)
+if os.path.exists(MODEL_PATH):
 
-    # calculate accuracy after each epoch
-    correct = 0
-    for x, y in zip(X_test, y_test):
-        pred = nn.forward(x)
-        if np.argmax(pred) == y:
-            correct += 1
+    print("Loading saved model...")
+    nn.load(MODEL_PATH)
 
-    accuracy = correct / len(X_test)
-    accuracy_history.append(accuracy)
+else:
 
-    print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} - Accuracy: {accuracy*100:.2f}%")
+    print("Training model...")
 
-# plot training loss
-plt.figure()
-plt.plot(range(1, epochs+1), loss_history, marker='o')
-plt.xticks(range(1, epochs+1))
-plt.title("Training Loss über Epochen")
-plt.xlabel("Epoche")
-plt.ylabel("Loss")
-plt.grid(True)
-plt.savefig("plots/training_loss.png")
-plt.close()
+    epochs = 20
+    learning_rate = 0.01
 
-# plot accuracy
-plt.figure()
-plt.plot(range(1, epochs+1), accuracy_history, marker='o')
-plt.xticks(range(1, epochs+1))
-plt.title("Testgenauigkeit über Epochen")
-plt.xlabel("Epoche")
-plt.ylabel("Accuracy")
-plt.grid(True)
-plt.savefig("plots/accuracy.png")
-plt.close()
+    batch_size = 64
 
-# final confusion matrix
-confusion = np.zeros((10, 10), dtype=int)
+    for epoch in range(epochs):
+        # Shuffle the training data
+        indices = np.random.permutation(len(X_train))
+        X_train_shuffled = X_train[indices]
+        y_train_shuffled = y_train[indices]
+
+        print(f"Epoch {epoch + 1}/{epochs}")
+
+        epoch_loss = 0
+        num_batches = 0
+
+        for i in range(0, len(X_train_shuffled), batch_size):
+            X_batch = X_train_shuffled[i : i + batch_size]
+            y_batch = y_train_shuffled[i : i + batch_size]
+
+            batch_loss = 0
+            for x, y in zip(X_batch, y_batch):
+                pred = nn.forward(x)
+                loss = -np.log(pred[y] + 1e-9)  # cross entropy loss
+                batch_loss += loss
+                nn.backward(x, y, learning_rate)
+
+            epoch_loss += batch_loss
+            num_batches += 1
+
+            # Print progress every 100 batches
+            if num_batches % 100 == 0:
+                avg_loss = epoch_loss / num_batches
+                print(f"  Batch {num_batches}, Average Loss: {avg_loss:.4f}")
+
+        # Print epoch summary
+        avg_epoch_loss = epoch_loss / num_batches
+        print(f"  Epoch {epoch + 1} completed. Average Loss: {avg_epoch_loss:.4f}")
+
+        # Evaluate on a small subset every few epochs
+        if (epoch + 1) % 5 == 0:
+            correct = 0
+            test_samples = min(1000, len(X_test))
+            for i in range(test_samples):
+                pred = nn.forward(X_test[i])
+                if np.argmax(pred) == y_test[i]:
+                    correct += 1
+            accuracy = correct / test_samples
+            print(f"  Validation accuracy after epoch {epoch + 1}: {accuracy*100:.2f}%")
+
+    print("Saving model...")
+    nn.save(MODEL_PATH)
+
+
+# evaluation
+correct = 0
 
 for x, y in zip(X_test, y_test):
+
     pred = nn.forward(x)
-    predicted = np.argmax(pred)
-    confusion[y][predicted] += 1
 
-plt.figure(figsize=(8,6))
-plt.imshow(confusion)
-plt.title("Confusion Matrix")
-plt.xlabel("Vorhergesagte Ziffer")
-plt.ylabel("Tatsächliche Ziffer")
-plt.colorbar()
-plt.savefig("plots/confusion_matrix.png")
-plt.close()
+    if np.argmax(pred) == y:
+        correct += 1
 
-# accuracy per digit
-digit_accuracy = confusion.diagonal() / confusion.sum(axis=1)
 
-plt.figure()
-plt.bar(range(10), digit_accuracy)
-plt.title("Genauigkeit pro Ziffer")
-plt.xlabel("Ziffer")
-plt.ylabel("Accuracy")
-plt.savefig("plots/digit_accuracy.png")
-plt.close()
+accuracy = correct / len(X_test)
 
-print("Plots gespeichert in /plots")
+print(f"Accuracy: {accuracy*100:.2f}%")
 
-print("Starting drawing GUI...")
 
+print("Starting GUI...")
 gui = DrawGUI(nn)
 gui.run()

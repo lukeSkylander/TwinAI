@@ -1,4 +1,68 @@
-# TwinAI
+# MNIST Neural Network AI
+
+A complete implementation of a neural network for MNIST digit recognition with an interactive drawing GUI.
+
+## Features
+
+- **Custom Neural Network**: 3-layer feedforward network implemented from scratch
+- **MNIST Dataset Support**: Loads and processes the MNIST handwritten digit dataset
+- **Interactive GUI**: Draw digits and see real-time predictions
+- **Model Persistence**: Save and load trained models
+- **Training Visualization**: Real-time loss tracking and validation accuracy
+
+## Components
+
+- `nn.py`: Neural network implementation with ReLU activation and softmax output
+- `data_loader.py`: MNIST dataset loading and preprocessing
+- `draw_gui.py`: Interactive Tkinter GUI for drawing and prediction
+- `main.py`: Main training and evaluation script
+- `test_system.py`: System verification tests
+
+## Quick Start
+
+1. **Run the system**:
+   ```bash
+   python main.py
+   ```
+
+2. **Test the system**:
+   ```bash
+   python test_system.py
+   ```
+
+## Architecture
+
+- **Input Layer**: 784 neurons (28x28 pixels)
+- **Hidden Layer 1**: 128 neurons with ReLU activation
+- **Hidden Layer 2**: 64 neurons with ReLU activation
+- **Output Layer**: 10 neurons with softmax activation (digits 0-9)
+
+## Training
+
+The network trains for 20 epochs with:
+- Batch size: 64
+- Learning rate: 0.01
+- Stochastic Gradient Descent optimizer
+- Cross-entropy loss function
+
+## GUI Usage
+
+1. Draw a digit in the black canvas using your mouse
+2. See real-time predictions and probability distributions
+3. Use "Clear" to reset the canvas
+4. Use "Random Noise" to test with random input
+
+## Dataset
+
+The system expects MNIST data in `./data/kaggle_mnist/` directory with files:
+- `train-images.idx3-ubyte`
+- `train-labels.idx1-ubyte`
+- `t10k-images.idx3-ubyte`
+- `t10k-labels.idx1-ubyte`
+
+## Results
+
+The trained model typically achieves 95%+ accuracy on the MNIST test set.
 
 Auftrag:
 
